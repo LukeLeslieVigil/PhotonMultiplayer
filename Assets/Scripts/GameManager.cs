@@ -7,6 +7,16 @@ using Photon.Realtime;
 
 public class GameManager : MonoBehaviour
 {
+    #region Public Fields
+
+    public static GameManager Instance;
+
+    #endregion
+    void Start()
+    {
+        Instance = this;
+    }
+
     #region Photon Callbacks
 
     // Called when the local player left the room. We need to load the launcher scene.
