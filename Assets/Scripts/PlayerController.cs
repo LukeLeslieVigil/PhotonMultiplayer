@@ -97,6 +97,11 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
         {
             items[itemIndex].Use();
         }
+
+        if(transform.position.y <= -20f)
+        {
+            Die();
+        }
     }
 
     private void FixedUpdate()
