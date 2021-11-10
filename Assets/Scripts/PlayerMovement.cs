@@ -6,7 +6,7 @@ public class PlayerMovement : MonoBehaviour
 {
     public CharacterController controller;
 
-    public float speed = 12f;
+    public float speed = 6f;
     public float gravity = -9.81f;
     public float jumpHeight = 3f;
 
@@ -28,6 +28,15 @@ public class PlayerMovement : MonoBehaviour
 
         float x = Input.GetAxis("Horizontal");
         float z = Input.GetAxis("Vertical");
+
+        if (Input.GetKeyDown(KeyCode.LeftShift) == true)
+        {
+            speed = 12f;
+        }
+        if (Input.GetKeyUp(KeyCode.LeftShift) == false)
+        {
+            speed = 6f;
+        }
 
         Vector3 move = transform.right * x + transform.forward * z;
 

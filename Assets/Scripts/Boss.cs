@@ -12,6 +12,9 @@ public class Boss : MonoBehaviour
     private float distance;
     private float currentMinDistance = 1000000;
 
+    private float stopDistance = 7.5f;
+    private bool stopMoving = false;
+
     void Start()
     {
         rb = this.GetComponent<Rigidbody>();
@@ -32,8 +35,9 @@ public class Boss : MonoBehaviour
             if (distance < currentMinDistance)
             {
                 target = players[i].transform;
+                stopMoving = false;
                 updateMovement();
-                Debug.Log(target + " " + currentMinDistance + " " + distance);
+                //Debug.Log(target + " " + currentMinDistance + " " + distance);
                 currentMinDistance = distance;
             }
         }
@@ -48,21 +52,37 @@ public class Boss : MonoBehaviour
         }
     }
 
-    private void OnTriggetExit(Collider other)
+    private void OnTriggerExit(Collider other)
     {
         if (other.gameObject.CompareTag("Player"))
         {
             findTarget();
-            currentMinDistance = 1000000;
+            //currentMinDistance = 1000000;
+            updateMovement();
         }
     }
 
     private void updateMovement()
     {
-        Vector3 direction = target.position - transform.position;
-        rb.transform.LookAt(target.transform);
-        direction.Normalize();
-        movement = direction;
-        //rb.MovePosition((Vector3)transform.position + (direction * moveSpeed * Time.deltaTime));
+        if (stopMoving == false)
+        {
+            Vector3 direction = target.position - transform.position;
+            rb.transform.LookAt(target.transform);
+            direction.Normalize();
+            movement = direction;
+            rb.MovePosition((Vector3)transform.position + (direction * moveSpeed * Time.deltaTime));            
+            if (Vector3.Distance(transform.position, target.transform.position) < stopDistance)
+            {
+                stopMoving = true;
+            }
+        }
+        if (stopMoving == true)
+        {
+            Vector3 direction = target.position - transform.position;
+            rb.transform.LookAt(target.transform);
+            direction.Normalize();
+            movement = direction;
+            rb.MovePosition((Vector3)transform.position + (direction * 0f * Time.deltaTime));
+        }
     }
 }
