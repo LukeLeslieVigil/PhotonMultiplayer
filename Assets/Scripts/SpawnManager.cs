@@ -11,7 +11,7 @@ public class SpawnManager : MonoBehaviour
     void Awake()
     {
         Instance = this;
-        spawnPoints = GetComponentsInChildren<Spawnpoints>();
+        spawnPoints = GetComponentsInChildren<Spawnpoint>();
     }
 
     public Transform GetSpawnPoint()
