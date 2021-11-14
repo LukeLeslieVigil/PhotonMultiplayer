@@ -2,111 +2,135 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
+using TMPro;
 using Photon.Realtime;
+using System.Linq;
 
 public class Launcher : MonoBehaviourPunCallbacks
 {
-    #region Private Serializable Field
 
-    // The maximum number of players per room. When a room is full, it can't be joined by new players, and so new room will be created.
-    [SerializeField]
-    private byte maxPlayersPerRoom = 4;
-    #endregion
+    public static Launcher Instance;
 
-    #region Private Fields
+    [SerializeField] TMP_InputField roomNameInputField;
+    [SerializeField] TMP_Text errorText;
+    [SerializeField] TMP_Text roomNameText;
+    [SerializeField] Transform roomListContent;
+    [SerializeField] Transform playerListContent;
+    [SerializeField] GameObject roomListItemPrefab;
+    [SerializeField] GameObject playerListItemPrefab;
+    [SerializeField] GameObject startGameButton;
 
-    // This client's version number. Users are separated from each other by gameVersion (which allows you to make breaking changes).
-    string gameVersion = "1";
-    [SerializeField]
-    private GameObject controlPanel;
-    [SerializeField]
-    private GameObject progressLabel;
+    private void Awake()
+    {
+        Instance = this;
+    }
 
-    bool isConnecting;
+    void Start()
+    {
+        //Connect to master server
+        Debug.Log("Connecting to Master");
+        PhotonNetwork.ConnectUsingSettings();
+    }
 
-    #endregion
-
-    #region MonoBehaviour CallBacks
 
     public override void OnConnectedToMaster()
     {
-        Debug.Log("PUN Basics Tutorial/Launcher: OnConnectedToMaster() was called by PUN");
-        if (isConnecting)
+        Debug.Log("Connected to Master");
+        PhotonNetwork.JoinLobby();
+        PhotonNetwork.AutomaticallySyncScene = true;
+    }
+
+    public override void OnJoinedLobby()
+    {
+        MenuManager.Instance.OpenMenu("title");
+        Debug.Log("Joined Lobby");
+        PhotonNetwork.NickName = "Player " + Random.Range(0, 1000).ToString("0000");
+    }
+    
+    public void CreateRoom()
+    {
+        if (string.IsNullOrEmpty(roomNameInputField.text))
         {
-            PhotonNetwork.JoinRandomRoom();
-            isConnecting = false;
+            return;
         }
-        
-    }
-
-    public override void OnDisconnected(DisconnectCause cause)
-    {
-        isConnecting = false;
-        progressLabel.SetActive(false);
-        controlPanel.SetActive(true);
-        Debug.LogWarningFormat("PUN Basics Tutorial/Launcher: OnDisconnected() was called by PUN with reason {0}", cause);
-    }
-
-    public override void OnJoinRoomFailed(short returnCode, string message)
-    {
-        Debug.Log("PUN Basics Tutorial/Launcher:OnJoinRandomFailed() was called by PUN. No random room available, so we create one.\nCalling: PhotonNetwork.CreateRoom");
-
-        PhotonNetwork.CreateRoom(null, new RoomOptions { MaxPlayers = maxPlayersPerRoom });
+        PhotonNetwork.CreateRoom(roomNameInputField.text);
+        MenuManager.Instance.OpenMenu("loading");
     }
 
     public override void OnJoinedRoom()
     {
-        Debug.Log("PUN Basics Tutorial/Launcher: OnJoinedRoom() called by PUN. Now this client is in a room.");
+        MenuManager.Instance.OpenMenu("room");
+        roomNameText.text = PhotonNetwork.CurrentRoom.Name;
 
-        if(PhotonNetwork.CurrentRoom.PlayerCount == 1)
+        Player[] players = PhotonNetwork.PlayerList;
+
+        //delete previous player list items
+        foreach (Transform child in playerListContent)
         {
-            Debug.Log("We load the 'Room for 1' ");
+            Destroy(child.gameObject);
+        }
 
-            //Load the Room Level
-            PhotonNetwork.LoadLevel("Room for 1");
+        for (int i = 0; i < players.Count(); i++)
+        {
+            Instantiate(playerListItemPrefab, playerListContent).GetComponent<PlayerListItem>().SetUp(players[i]);
+        }
+
+        startGameButton.SetActive(PhotonNetwork.IsMasterClient);
+    }
+
+    public override void OnMasterClientSwitched(Player newMasterClient)
+    {
+        startGameButton.SetActive(PhotonNetwork.IsMasterClient);
+    }
+
+    public override void OnCreateRoomFailed(short returnCode, string message)
+    {
+        errorText.text = "Room Creation Failed: " + message;
+        MenuManager.Instance.OpenMenu("error");
+    }
+
+    public void StartGame()
+    {
+        PhotonNetwork.LoadLevel(1);
+    }
+
+    public void LeaveRoom()
+    {
+        PhotonNetwork.LeaveRoom();
+        MenuManager.Instance.OpenMenu("loading");
+    }
+
+    public void JoinRoom(RoomInfo info)
+    {
+        PhotonNetwork.JoinRoom(info.Name);
+        MenuManager.Instance.OpenMenu("loading");
+
+    }
+
+    public override void OnLeftRoom()
+    {
+        MenuManager.Instance.OpenMenu("title");
+    }
+
+    public override void OnRoomListUpdate(List<RoomInfo> roomList)
+    {
+        foreach(Transform trans in roomListContent)
+        {
+            Destroy(trans.gameObject);
+        }
+
+        for(int i = 0; i < roomList.Count; i++)
+        {
+            if (roomList[i].RemovedFromList)
+            {
+                continue;
+            }
+            Instantiate(roomListItemPrefab, roomListContent).GetComponent<RoomListItem>().SetUp(roomList[i]);
         }
     }
 
-    // MonoBehaviour method called on GameObject by Unity during early initialization phase.
-    private void Awake()
+    public override void OnPlayerEnteredRoom(Player newPlayer)
     {
-        // this makes sure we can use PhotonNetwork.LoadLevel() on the master client and all clients in the same room sync their level automatically
-        PhotonNetwork.AutomaticallySyncScene = true;
-
+        Instantiate(playerListItemPrefab, playerListContent).GetComponent<PlayerListItem>().SetUp(newPlayer);
     }
-
-    // MonoBehaviour method called on GameObject by Unity during initialization phase.
-    private void Start()
-    {
-        progressLabel.SetActive(false);
-        controlPanel.SetActive(true);
-    }
-
-    #endregion
-
-    #region Public Methods
-
-    // Start the connection process.
-    // - If already connected, we attempt joining a random room
-    // - if not yet connected, Connect this application instance to Photon Cloud Network
-
-    public void Connect()
-    {
-        progressLabel.SetActive(true);
-        controlPanel.SetActive(false);
-        // we check if we are connected or not, we join if we are , else we initiate the connection to the server.
-        if (PhotonNetwork.IsConnected)
-        {
-            // we need at this point to attempt joining a Random Room. If it fails, we'll get notified in OnJoinRandomFailed() and we'll create one.
-            PhotonNetwork.JoinRandomRoom();
-        }
-        else
-        {
-            // we must first and foremost connect to Photon Online Server.
-            isConnecting = PhotonNetwork.ConnectUsingSettings();
-            PhotonNetwork.GameVersion = gameVersion;
-        }
-    }
-
-    #endregion
 }
