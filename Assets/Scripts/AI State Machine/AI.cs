@@ -6,13 +6,13 @@ using UnityEngine.AI;
 public class AI : MonoBehaviour
 {
     NavMeshAgent agent;  
-    public Transform player;
+    Transform player;
     State currentState;
 
     // Animation
     Animator anim;    
 
-    private void Start()
+    private void Awake()
     {
         player = GameObject.FindGameObjectWithTag("Player").transform;
         anim = GetComponent<Animator>();
