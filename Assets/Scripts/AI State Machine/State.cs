@@ -82,17 +82,21 @@ public class State
 
     public void updateMovement()
     {
-        players = GameObject.FindGameObjectsWithTag("Player");
+        //players = GameObject.FindGameObjectsWithTag("Player");
 
-        for (int i = 0; i < players.Length; i++)
-        {
-            distance = Vector3.Distance(agent.transform.position, players[i].transform.position);
-            if (distance < currentMinDistance)
-            {
-                target = players[i].transform;                
-                currentMinDistance = distance;
-            }
-        }
+        BossManager bossManager = GameObject.FindGameObjectWithTag("BossManager").GetComponent<BossManager>();
+
+        target = bossManager.FindClosestPlayer().transform;
+
+        //for (int i = 0; i < players.length; i++)
+        //{
+        //    distance = vector3.distance(agent.transform.position, players[i].transform.position);
+        //    if (distance < currentmindistance)
+        //    {
+        //        target = players[i].transform;
+        //        currentmindistance = distance;
+        //    }
+        //}
     }
 }
 
@@ -118,7 +122,7 @@ public class Idle : State
         }
         else if (Random.Range(0, 100) < 10)
         {
-            nextState = new Idle(npc, agent, anim, player);
+            nextState = new Search(npc, agent, anim, player);
             stage = EVENT.EXIT;
         }
     }
@@ -150,12 +154,26 @@ public class Search : State
 
     public override void Update()
     {
+        // Test:
+
         updateMovement();
+
         if (CanSeePlayer())
         {
+            Debug.Log("Can see player");
+            agent.transform.LookAt(target.transform);
             nextState = new Attack(npc, agent, anim, player);
             stage = EVENT.EXIT;
         }
+
+        // Current Solution:
+
+        //updateMovement();
+        //if (CanSeePlayer())
+        //{
+        //    nextState = new Attack(npc, agent, anim, player);
+        //    stage = EVENT.EXIT;
+        //}
     }
 
     public override void Exit()
@@ -182,9 +200,22 @@ public class Attack : State
 
     public override void Update()
     {
-        agent.transform.LookAt(player.transform);
-        var distance = Vector3.Distance(player.position, npc.transform.position);        
-        if (distance <= 10f)
+        updateMovement();
+        if (CanSeePlayer())
+        {
+            Debug.Log("Can attack player");
+            agent.transform.LookAt(target.transform);
+            nextState = new Attack(npc, agent, anim, player);
+            stage = EVENT.EXIT;
+        }
+        //if (CanAttackPlayer())
+        //{
+        //    agent.transform.LookAt(target.transform);
+        //    nextState = new Attack(npc, agent, anim, player);
+        //    stage = EVENT.EXIT;
+        //}
+        var distance = Vector3.Distance(target.position, npc.transform.position);
+        if (distance >= 30f)
         {
             nextState = new Idle(npc, agent, anim, player);
             stage = EVENT.EXIT;
