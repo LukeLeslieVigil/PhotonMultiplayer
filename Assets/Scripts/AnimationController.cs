@@ -5,12 +5,10 @@ using UnityEngine;
 public class AnimationController : MonoBehaviour
 {
     private Animator animator;
-    float currentSpeed;
 
     void Start()
     {
         animator = GetComponent<Animator>();
-        currentSpeed = animator.GetCurrentAnimatorStateInfo(0).speed;
     }
 
     // Update is called once per frame
@@ -21,21 +19,35 @@ public class AnimationController : MonoBehaviour
 
     void CheckAnimationState()
     {
-        if (Input.GetKey(KeyCode.W))
+        float move = Input.GetAxis("Vertical");
+        float halfSpeed = 0.5f;
+
+        if(Input.GetAxis("Vertical") > 0)
         {
-            animator.SetTrigger("Walk");
-            animator.ResetTrigger("Idle");
+            animator.SetFloat("Speed", move * halfSpeed);
 
             if (Input.GetKey(KeyCode.LeftShift))
             {
-                animator.SetTrigger("Run");
-                animator.ResetTrigger("Walk");
+                animator.SetFloat("Speed", move);
             }
+        }
+
+        if (Input.GetMouseButton(0))
+        {
+            animator.SetBool("Shoot", true);
         }
         else
         {
-            animator.SetTrigger("Idle");
-            animator.ResetTrigger("Run");
+            animator.SetBool("Shoot", false);
+        }
+
+        if (Input.GetKeyDown(KeyCode.Alpha1))
+        {
+            animator.SetInteger("SwapGun", 1);
+        }
+        else if (Input.GetKeyDown(KeyCode.Alpha2))
+        {
+            animator.SetInteger("SwapGun", 2);
         }
     }
 }
