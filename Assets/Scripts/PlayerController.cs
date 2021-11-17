@@ -17,6 +17,8 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
     [SerializeField] Image healthbarImage;
     [SerializeField] GameObject UI;
 
+    private AnimationController animControl;
+
     int itemIndex;
     int previousItemIndex = -1;
 
@@ -38,6 +40,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
     {
         rb = GetComponent<Rigidbody>();
         PV = GetComponent<PhotonView>();
+        animControl = GetComponent<AnimationController>();
 
         playerManager = PhotonView.Find((int)PV.InstantiationData[0]).GetComponent<PlayerManager>();
     }
