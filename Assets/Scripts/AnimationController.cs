@@ -1,20 +1,27 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Photon.Pun;
 
 public class AnimationController : MonoBehaviour
 {
     private Animator animator;
 
+    PhotonView PV;
+
     void Start()
     {
         animator = GetComponent<Animator>();
+        PV = GetComponent<PhotonView>();
     }
 
     // Update is called once per frame
     void Update()
     {
-        CheckAnimationState();
+        if (PV.IsMine)
+        {
+            CheckAnimationState();
+        }
     }
 
     void CheckAnimationState()
