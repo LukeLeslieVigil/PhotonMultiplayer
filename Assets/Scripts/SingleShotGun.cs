@@ -9,6 +9,21 @@ public class SingleShotGun : Gun
 
     PhotonView PV;
 
+    public int maxAmmo = 10;
+    private int currentAmmo;
+    public float reloadTime = 1f;
+    private bool isReloading = false;
+
+    private void Start()
+    {
+        currentAmmo = maxAmmo;
+    }
+
+    private void OnEnable()
+    {
+        isReloading = false;
+    }
+
     private void Awake()
     {
         PV = GetComponent<PhotonView>();
@@ -19,14 +34,38 @@ public class SingleShotGun : Gun
         Shoot();
     }
 
+    private IEnumerator Reload()
+    {
+        isReloading = true;
+        Debug.Log("is Reloading...");
+        yield return new WaitForSeconds(reloadTime - .25f);
+        currentAmmo = maxAmmo;
+        isReloading = false;
+    }
+
     void Shoot()
     {
+        currentAmmo--;
+
         Ray ray = cam.ViewportPointToRay(new Vector3(0.5f, 0.5f));
         ray.origin = cam.transform.position;
         if(Physics.Raycast(ray, out RaycastHit hit))
         {
             hit.collider.gameObject.GetComponent<IDamageable>()?.TakeDamage(((GunInfo)itemInfo).damage);
             PV.RPC("RPC_Shoot", RpcTarget.All, hit.point, hit.normal);
+        }
+    }
+
+    private void Update()
+    {
+        if (isReloading)
+        {
+            return;
+        }
+        if(currentAmmo <= 0)
+        {
+            StartCoroutine(Reload());
+            return;
         }
     }
 
@@ -41,4 +80,5 @@ public class SingleShotGun : Gun
             bulletImpactObject.transform.SetParent(colliders[0].transform);
         }
     }
+
 }
