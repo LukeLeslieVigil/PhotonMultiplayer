@@ -8,7 +8,9 @@ public class SingleShotGun : Gun
     [SerializeField] Camera cam;
 
     PhotonView PV;
+    AudioSource audioSource;
 
+    public AudioClip shotSound;
     public int maxAmmo = 10;
     private int currentAmmo;
     public float reloadTime = 1f;
@@ -27,6 +29,7 @@ public class SingleShotGun : Gun
     private void Awake()
     {
         PV = GetComponent<PhotonView>();
+        audioSource = GetComponent<AudioSource>();
     }
 
     public override void Use()
@@ -47,6 +50,7 @@ public class SingleShotGun : Gun
     {
         currentAmmo--;
 
+        audioSource.PlayOneShot(shotSound, 0.7f);
         Ray ray = cam.ViewportPointToRay(new Vector3(0.5f, 0.5f));
         ray.origin = cam.transform.position;
         if(Physics.Raycast(ray, out RaycastHit hit))
