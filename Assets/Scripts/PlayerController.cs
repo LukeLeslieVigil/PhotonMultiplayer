@@ -4,6 +4,10 @@ using UnityEngine;
 using Photon.Pun;
 using Hashtable = ExitGames.Client.Photon.Hashtable;
 using Photon.Realtime;
+<<<<<<< Updated upstream
+=======
+using UnityEngine.UI;
+>>>>>>> Stashed changes
 
 public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
 {
@@ -13,6 +17,14 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
 
     [SerializeField] Item[] items;
 
+<<<<<<< Updated upstream
+=======
+    [SerializeField] Image healthbarImage;
+    [SerializeField] GameObject UI;    
+
+    private AnimationController animControl;
+
+>>>>>>> Stashed changes
     int itemIndex;
     int previousItemIndex = -1;
 
@@ -31,7 +43,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
     PlayerManager playerManager;
 
     private void Awake()
-    {
+    {        
         rb = GetComponent<Rigidbody>();
         PV = GetComponent<PhotonView>();
 
@@ -41,18 +53,18 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
     private void Start()
     {
         if (PV.IsMine)
-        {
+        {            
             EquipItem(0);
         }
         else
-        {
+        {            
             Destroy(GetComponentInChildren<Camera>().gameObject);
             Destroy(rb);
         }
     }
 
     private void Update()
-    {
+    {        
         if (!PV.IsMine)
             return;
 
@@ -193,12 +205,12 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
 
         if(currentHealth <= 0)
         {
-            Die();
+            Die();            
         }
     }
 
     void Die()
-    {
-        playerManager.Die();
+    {                      
+        playerManager.Die();        
     }
 }
