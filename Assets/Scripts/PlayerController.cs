@@ -4,10 +4,8 @@ using UnityEngine;
 using Photon.Pun;
 using Hashtable = ExitGames.Client.Photon.Hashtable;
 using Photon.Realtime;
-<<<<<<< Updated upstream
-=======
 using UnityEngine.UI;
->>>>>>> Stashed changes
+using TMPro;
 
 public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
 {
@@ -17,14 +15,11 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
 
     [SerializeField] Item[] items;
 
-<<<<<<< Updated upstream
-=======
     [SerializeField] Image healthbarImage;
-    [SerializeField] GameObject UI;    
+    [SerializeField] GameObject UI;
 
     private AnimationController animControl;
 
->>>>>>> Stashed changes
     int itemIndex;
     int previousItemIndex = -1;
 
@@ -43,9 +38,10 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
     PlayerManager playerManager;
 
     private void Awake()
-    {        
+    {
         rb = GetComponent<Rigidbody>();
         PV = GetComponent<PhotonView>();
+        animControl = GetComponent<AnimationController>();
 
         playerManager = PhotonView.Find((int)PV.InstantiationData[0]).GetComponent<PlayerManager>();
     }
@@ -53,18 +49,21 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
     private void Start()
     {
         if (PV.IsMine)
-        {            
+        {
             EquipItem(0);
+            Cursor.lockState = CursorLockMode.Locked;
         }
         else
-        {            
+        {
             Destroy(GetComponentInChildren<Camera>().gameObject);
+            Destroy(animControl);
             Destroy(rb);
+            Destroy(UI);
         }
     }
 
     private void Update()
-    {        
+    {
         if (!PV.IsMine)
             return;
 
@@ -110,7 +109,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
             items[itemIndex].Use();
         }
 
-        if(transform.position.y <= -20f)
+        if(transform.position.y <= -10f)
         {
             Die();
         }
@@ -203,14 +202,16 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
 
         currentHealth -= damage;
 
+        healthbarImage.fillAmount = currentHealth / maxHealth;
+
         if(currentHealth <= 0)
         {
-            Die();            
+            Die();
         }
     }
 
     void Die()
-    {                      
-        playerManager.Die();        
+    {
+        playerManager.Die();
     }
 }
